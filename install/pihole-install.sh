@@ -25,8 +25,8 @@ msg_info "Installing Pi-hole"
 mkdir -p /etc/pihole/
 cat <<EOF >/etc/pihole/setupVars.conf
 PIHOLE_INTERFACE=eth0
-PIHOLE_DNS_1=8.8.8.8
-PIHOLE_DNS_2=8.8.4.4
+PIHOLE_DNS_1=1.1.1.1
+PIHOLE_DNS_2=1.0.0.1
 QUERY_LOGGING=true
 INSTALL_WEB_SERVER=true
 INSTALL_WEB_INTERFACE=true
