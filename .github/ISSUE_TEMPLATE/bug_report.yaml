@@ -9,16 +9,38 @@ body:
         - Changing Linux distributions without confirming the proper functioning of default settings.
         - When encountering the error message `[ERROR] in line 24: exit code *: while executing command "$@" > /dev/null 2>&1`, make sure to run the script in verbose mode to accurately determine the underlying issue.
         - For suggestions, questions or feature/script requests, please share them in the [Discussions section.](https://github.com/tteck/Proxmox/discussions)
+  - type: input
+    id: guidelines
+    attributes:
+      label: Please verify that you have read and understood the guidelines.
+      placeholder: 'yes'
+    validations:
+      required: true
   - type: textarea
     id: bug
     attributes:
       label: A clear and concise description of the issue.
     validations:
       required: true
+  - type: dropdown
+    id: distribution
+    validations:
+      required: true
+    attributes:
+      label: Which Linux distribution are you employing?
+      options:
+        - 
+        - Default Settings
+        - Debian 11
+        - Debian 12
+        - Ubuntu 20.04
+        - Ubuntu 22.04
+        - Ubuntu 23.04
   - type: textarea
     id: screenshot
     attributes:
       label: If relevant, including screenshots or a code block can be helpful in clarifying the issue.
+      placeholder: Code blocks begin and conclude by enclosing the code with three backticks (```) above and below it.
     validations:
       required: false
   - type: textarea
