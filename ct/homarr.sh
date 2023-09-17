@@ -56,16 +56,13 @@ if [[ ! -d /opt/homarr ]]; then msg_error "No ${APP} Installation Found!"; exit;
 msg_info "Updating $APP"
 systemctl stop homarr
 cd /opt/homarr
-output=$(git pull)
+cp -R data data-backup
+git stash &>/dev/null
 git pull &>/dev/null
-if echo "$output" | grep -q "Already up to date."
-then
-  msg_ok " $APP is already up to date."
-  systemctl start homarr
-  exit
-fi
 yarn install &>/dev/null
 yarn build &>/dev/null
+cp -R data-backup/* data
+rm -rf data-backup
 systemctl start homarr
 msg_ok "Updated $APP"
 exit

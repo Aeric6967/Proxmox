@@ -4,6 +4,108 @@
 
 - All LXC instances created using this repository come pre-installed with Midnight Commander, which is a command-line tool (`mc`) that offers a user-friendly file and directory management interface for the terminal environment.
 
+## 2023-09-14
+
+### Changed
+
+- **Proxmox VE Processor Microcode**
+  - Allow users to select available microcode packages.
+
+## 2023-09-13
+
+### Changed
+
+- **Pi.Alert LXC**
+  - NEW Script
+- **Proxmox VE Kernel Clean**
+  - Code overhaul with a fresh start. This script offers the flexibility to select specific kernels for removal, unlike the previous version, which was an all-or-nothing approach.
+
+## 2023-09-11
+
+### Changed
+
+- **Paperless-ngx LXC**
+  - Modify the script to incorporate Redis and PostgreSQL, while also introducing an option to include Adminer during installation.
+
+## 2023-09-10
+
+### Changed
+
+- **TurnKey Game Server LXC**
+  - NEW Script
+
+## 2023-09-09
+
+### Changed
+
+- **Proxmox VE Host Backup**
+  - Users are now able to specify both the backup path and the directory in which they wish to work.
+
+## 2023-09-07
+
+### Changed
+
+- **Proxmox VE Host Backup**
+  - NEW Script
+
+## 2023-09-06
+
+### Changed
+
+- **Proxmox VE LXC Cleaner**
+  - Added a new menu that allows you to choose which containers you want to exclude from the clean process.
+- **Tailscale**
+  - Added a menu that enables you to choose the specific container where you want to install Tailscale.
+
+## 2023-09-05
+
+### Changed
+
+- **Proxmox VE LXC Updater**
+  - Added a new menu that allows you to choose which containers you want to exclude from the update process.
+
+## 2023-09-01
+
+### Changed
+
+- **TurnKey Media Server LXC**
+  - NEW Script
+
+## 2023-08-31
+
+### Changed
+
+- **TurnKey ZoneMinder LXC**
+  - NEW Script
+- **TurnKey OpenVPN LXC**
+  - NEW Script
+
+## 2023-08-30
+
+### Changed
+
+- **TurnKey**
+  - Introducing a **NEW** Category on the Site.
+  - My intention is to maintain the TurnKey scripts in their simplest form, contained within a single file, and with minimal options, if any.
+- **TurnKey Core LXC**
+  - NEW Script
+- **TurnKey File Server LXC**
+  - NEW Script
+- **TurnKey Gitea LXC**
+  - NEW Script
+- **TurnKey GitLab LXC**
+  - NEW Script
+- **TurnKey Nextcloud LXC**
+  - NEW Script
+- **TurnKey Observium LXC**
+  - NEW Script
+- **TurnKey ownCloud LXC**
+  - NEW Script
+- **TurnKey Torrent Server LXC**
+  - NEW Script
+- **TurnKey Wordpress LXC**
+  - NEW Script
+
 ## 2023-08-24
 
 ### Changed

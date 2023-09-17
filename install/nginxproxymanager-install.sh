@@ -30,7 +30,7 @@ $STD apt-get -y install \
   git
 msg_ok "Installed Dependencies"
 
-msg_info "Updating Python"
+msg_info "Installing Python Dependencies"
 $STD apt-get install -y \
   python3 \
   python3-dev \
@@ -39,9 +39,10 @@ $STD apt-get install -y \
   python3-cffi \
   python3-certbot \
   python3-certbot-dns-cloudflare
-
+$STD pip3 install certbot_dns_porkbun
+$STD pip3 install certbot-dns-duckdns
 $STD python3 -m venv /opt/certbot/
-msg_ok "Updated Python"
+msg_ok "Installed Python Dependencies"
 
 VERSION="$(awk -F'=' '/^VERSION_CODENAME=/{ print $NF }' /etc/os-release)"
 

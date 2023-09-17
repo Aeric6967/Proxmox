@@ -8,21 +8,20 @@ source <(curl -s https://raw.githubusercontent.com/tteck/Proxmox/main/misc/build
 function header_info {
 clear
 cat <<"EOF"
-                          __  _____    ____ 
-  ____  ____  ___  ____  / / / /   |  / __ )
- / __ \/ __ \/ _ \/ __ \/ /_/ / /| | / __  |
-/ /_/ / /_/ /  __/ / / / __  / ___ |/ /_/ / 
-\____/ .___/\___/_/ /_/_/ /_/_/  |_/_____/  
-    /_/                                     
- 
+    ____  _   ___    __          __
+   / __ \(_) /   |  / /__  _____/ /_
+  / /_/ / / / /| | / / _ \/ ___/ __/
+ / ____/ / / ___ |/ /  __/ /  / /_
+/_/   /_(_)_/  |_/_/\___/_/   \__/
+
 EOF
 }
 header_info
 echo -e "Loading..."
-APP="openHAB"
-var_disk="8"
-var_cpu="2"
-var_ram="2048"
+APP="PiAlert"
+var_disk="3"
+var_cpu="1"
+var_ram="512"
 var_os="debian"
 var_version="12"
 variables
@@ -53,11 +52,8 @@ function default_settings() {
 
 function update_script() {
 header_info
-if [[ ! -f /etc/apt/sources.list.d/openhab.list ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-msg_info "Updating ${APP} LXC"
-apt-get update &>/dev/null
-apt-get -y upgrade &>/dev/null
-msg_ok "Updated Successfully"
+if [[ ! -d /opt/pialert ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+msg_error "There is currently no update path available."
 exit
 }
 
@@ -67,4 +63,4 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} should be reachable by going to the following URL.
-         ${BL}http://${IP}:8080${CL} \n"
+         ${BL}http://${IP}/pialert/${CL} \n"

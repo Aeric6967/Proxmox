@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+# Copyright (c) 2021-2023 tteck
+# Author: tteck (tteckster)
+# License: MIT
+# https://github.com/tteck/Proxmox/raw/main/LICENSE
+
+source /dev/stdin <<< "$FUNCTIONS_FILE_PATH"
+color
+verb_ip6
+catch_errors
+setting_up_container
+network_check
+update_os
+
+msg_info "Installing Dependencies"
+$STD apt-get -y install \
+  sudo \
+  mc \
+  curl \
+  git \
+  apt-utils \
+  lighttpd \
+  sqlite3 \
+  mmdb-bin \
+  arp-scan \
+  dnsutils \
+  net-tools \
+  libwww-perl \
+  nmap \
+  zip \
+  wakeonlan
+msg_ok "Installed Dependencies"
+
+msg_info "Installing PHP Dependencies"
+$STD apt-get -y install \
+  php \
+  php-cgi \
+  php-fpm \
+  php-curl \
+  php-sqlite3
+$STD lighttpd-enable-mod fastcgi-php
+service lighttpd force-reload
+msg_ok "Installed PHP Dependencies"
+#arp-scan -l
+
+msg_info "Installing Python Dependencies"
+$STD apt-get -y install \
+  python3-pip \
+  python3-requests
+$STD pip3 install mac-vendor-lookup
+$STD pip3 install fritzconnection
+$STD pip3 install cryptography
+msg_ok "Installed Python Dependencies"
+
+msg_info "Installing Pi.Alert (Patience)"
+git clone -q https://github.com/leiweibau/Pi.Alert.git /opt/pialert
+mkdir -p /opt/pialert/front/reports
+rm -rf /var/www/html/index.html /opt/pialert/{docs,install,tar}
+mv /var/www/html/index.lighttpd.html /var/www/html/index.lighttpd.html.old
+ln -s /opt/pialert/install/index.html /var/www/html/index.html
+ln -s /opt/pialert/front /var/www/html/pialert
+chmod go+x /opt/pialert /opt/pialert/back/shoutrrr/x86/shoutrrr
+chgrp -R www-data /opt/pialert/db /opt/pialert/front/reports /opt/pialert/config /opt/pialert/config/pialert.conf
+chmod -R 775 /opt/pialert/db /opt/pialert/db/temp /opt/pialert/config /opt/pialert/front/reports
+touch /opt/pialert/log/pialert.vendors.log /opt/pialert/log/pialert.IP.log /opt/pialert/log/pialert.1.log /opt/pialert/log/pialert.cleanup.log /opt/pialert/log/pialert.webservices.log
+src_dir="/opt/pialert/log"
+dest_dir="/opt/pialert/front/php/server"
+for file in pialert.vendors.log pialert.IP.log pialert.1.log pialert.cleanup.log pialert.webservices.log; do
+    ln -s "$src_dir/$file" "$dest_dir/$file"
+done
+sed -i 's#PIALERT_PATH\s*=\s*'\''/home/pi/pialert'\''#PIALERT_PATH           = '\''/opt/pialert'\''#' /opt/pialert/config/pialert.conf
+msg_ok "Installed Pi.Alert"
+
+msg_info "Start Pi.Alert Scan (Patience)"
+$STD python3 /opt/pialert/back/pialert.py update_vendors
+$STD python3 /opt/pialert/back/pialert.py internet_IP
+$STD python3 /opt/pialert/back/pialert.py 1
+msg_ok "Finished Pi.Alert Scan"
+
+motd_ssh
+customize
+
+msg_info "Cleaning up"
+$STD apt-get autoremove
+$STD apt-get autoclean
+msg_ok "Cleaned"

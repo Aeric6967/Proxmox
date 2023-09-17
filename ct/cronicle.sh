@@ -51,7 +51,7 @@ function default_settings() {
 }
 
 function update_script() {
-UPD=$(whiptail --title "SUPPORT" --radiolist --cancel-button Exit-Script "Spacebar = Select" 11 58 2 \
+UPD=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "SUPPORT" --radiolist --cancel-button Exit-Script "Spacebar = Select" 11 58 2 \
   "1" "Update ${APP}" ON \
   "2" "Install ${APP} Worker" OFF \
   3>&1 1>&2 2>&3)
@@ -73,13 +73,18 @@ apt-get install -y git &>/dev/null
 apt-get install -y make &>/dev/null
 apt-get install -y g++ &>/dev/null
 apt-get install -y gcc &>/dev/null
+apt-get install -y ca-certificates &>/dev/null
+apt-get install -y gnupg &>/dev/null
 msg_ok "Installed Dependencies"
 
 msg_info "Setting up Node.js Repository"
-bash <(curl -fsSL https://deb.nodesource.com/setup_16.x) &>/dev/null
+mkdir -p /etc/apt/keyrings
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
 msg_ok "Set up Node.js Repository"
 
 msg_info "Installing Node.js"
+apt-get update &>/dev/null
 apt-get install -y nodejs &>/dev/null
 msg_ok "Installed Node.js"
 
