@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2021-2023 tteck
+# Copyright (c) 2021-2024 tteck
 # Author: tteck (tteckster)
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
@@ -18,17 +18,19 @@ $STD apt-get -y install \
   sudo \
   mc \
   curl \
-  git \
   apt-utils \
+  avahi-utils \
   lighttpd \
   sqlite3 \
   mmdb-bin \
   arp-scan \
   dnsutils \
   net-tools \
+  nbtscan \
   libwww-perl \
   nmap \
   zip \
+  aria2 \
   wakeonlan
 msg_ok "Installed Dependencies"
 
@@ -38,26 +40,31 @@ $STD apt-get -y install \
   php-cgi \
   php-fpm \
   php-curl \
+  php-xml \
   php-sqlite3
 $STD lighttpd-enable-mod fastcgi-php
 service lighttpd force-reload
 msg_ok "Installed PHP Dependencies"
-#arp-scan -l
 
 msg_info "Installing Python Dependencies"
 $STD apt-get -y install \
   python3-pip \
-  python3-requests
+  python3-requests \
+  python3-tz \
+  python3-tzlocal
+rm -rf /usr/lib/python3.*/EXTERNALLY-MANAGED
 $STD pip3 install mac-vendor-lookup
 $STD pip3 install fritzconnection
 $STD pip3 install cryptography
+$STD pip3 install pyunifi
 msg_ok "Installed Python Dependencies"
 
-msg_info "Installing Pi.Alert (Patience)"
-git clone -q https://github.com/leiweibau/Pi.Alert.git /opt/pialert
-mkdir -p /opt/pialert/front/reports
-rm -rf /var/www/html/index.html /opt/pialert/{docs,install,tar}
+msg_info "Installing Pi.Alert"
+curl -sL https://github.com/leiweibau/Pi.Alert/raw/main/tar/pialert_latest.tar | tar xvf - -C /opt >/dev/null 2>&1
+rm -rf /var/lib/ieee-data /var/www/html/index.html
+sed -i -e 's#^sudo cp -n /usr/share/ieee-data/.* /var/lib/ieee-data/#\# &#' -e '/^sudo mkdir -p 2_backup$/s/^/# /' -e '/^sudo cp \*.txt 2_backup$/s/^/# /' -e '/^sudo cp \*.csv 2_backup$/s/^/# /' /opt/pialert/back/update_vendors.sh
 mv /var/www/html/index.lighttpd.html /var/www/html/index.lighttpd.html.old
+ln -s /usr/share/ieee-data/ /var/lib/
 ln -s /opt/pialert/install/index.html /var/www/html/index.html
 ln -s /opt/pialert/front /var/www/html/pialert
 chmod go+x /opt/pialert /opt/pialert/back/shoutrrr/x86/shoutrrr
@@ -70,6 +77,16 @@ for file in pialert.vendors.log pialert.IP.log pialert.1.log pialert.cleanup.log
     ln -s "$src_dir/$file" "$dest_dir/$file"
 done
 sed -i 's#PIALERT_PATH\s*=\s*'\''/home/pi/pialert'\''#PIALERT_PATH           = '\''/opt/pialert'\''#' /opt/pialert/config/pialert.conf
+sed -i 's/$HOME/\/opt/g' /opt/pialert/install/pialert.cron
+crontab /opt/pialert/install/pialert.cron
+echo "bash -c \"\$(wget -qLO - https://github.com/leiweibau/Pi.Alert/raw/main/install/pialert_update.sh)\" -s --lxc" >/usr/bin/update
+chmod +x /usr/bin/update
+echo "python3 /opt/pialert/back/pialert.py 1" >/usr/bin/scan
+chmod +x /usr/bin/scan
+echo "/opt/pialert/back/pialert-cli set_permissions --lxc" >/usr/bin/permissions
+chmod +x /usr/bin/permissions
+echo "/opt/pialert/back/pialert-cli set_sudoers --lxc" >/usr/bin/sudoers
+chmod +x /usr/bin/sudoers
 msg_ok "Installed Pi.Alert"
 
 msg_info "Start Pi.Alert Scan (Patience)"
@@ -82,6 +99,6 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
-$STD apt-get autoremove
-$STD apt-get autoclean
+$STD apt-get -y autoremove
+$STD apt-get -y autoclean
 msg_ok "Cleaned"

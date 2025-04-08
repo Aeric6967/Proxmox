@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2021-2023 tteck
+# Copyright (c) 2021-2024 tteck
 # Author: tteck (tteckster)
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
@@ -26,17 +26,12 @@ $STD apt-get install -y \
   python3-dev \
   python3-pip \
   python3-venv
-
+rm -rf /usr/lib/python3.*/EXTERNALLY-MANAGED
 msg_ok "Updated Python3"
 
 msg_info "Installing ESPHome"
-#mkdir /srv/esphome
-#cd /srv/esphome
-#python3 -m venv .
-#source bin/activate
+mkdir /root/config
 $STD pip install esphome tornado esptool
-echo "bash -c \"\$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/ct/${app}.sh)\"" >/usr/bin/update
-chmod +x /usr/bin/update
 msg_ok "Installed ESPHome"
 
 msg_info "Creating Service"
@@ -46,7 +41,6 @@ Description=ESPHome Dashboard
 After=network.target
 
 [Service]
-#ExecStart=/srv/esphome/bin/esphome dashboard /root/config/
 ExecStart=/usr/local/bin/esphome dashboard /root/config/
 Restart=always
 User=root
@@ -61,6 +55,6 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
-$STD apt-get autoremove
-$STD apt-get autoclean
+$STD apt-get -y autoremove
+$STD apt-get -y autoclean
 msg_ok "Cleaned"

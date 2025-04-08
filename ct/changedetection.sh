@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 source <(curl -s https://raw.githubusercontent.com/tteck/Proxmox/main/misc/build.func)
-# Copyright (c) 2021-2023 tteck
+# Copyright (c) 2021-2024 tteck
 # Author: tteck (tteckster)
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
@@ -23,7 +23,7 @@ var_disk="8"
 var_cpu="2"
 var_ram="1024"
 var_os="debian"
-var_version="11"
+var_version="12"
 variables
 color
 catch_errors
@@ -39,6 +39,8 @@ function default_settings() {
   BRG="vmbr0"
   NET="dhcp"
   GATE=""
+  APT_CACHER=""
+  APT_CACHER_IP=""
   DISABLEIP6="no"
   MTU=""
   SD=""
@@ -54,7 +56,24 @@ function update_script() {
 header_info
 if [[ ! -f /etc/systemd/system/changedetection.service ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
 msg_info "Updating ${APP} LXC"
+if ! dpkg -s libjpeg-dev >/dev/null 2>&1; then
+  apt-get update
+  apt-get install -y libjpeg-dev
+fi
 pip3 install changedetection.io --upgrade &>/dev/null
+pip3 install playwright --upgrade &>/dev/null
+if [[ -f /etc/systemd/system/browserless.service ]]; then
+  git -C /opt/browserless/ fetch --all &>/dev/null
+  git -C /opt/browserless/ reset --hard origin/main &>/dev/null
+  npm update --prefix /opt/browserless &>/dev/null
+  npm run build --prefix /opt/browserless &>/dev/null
+  npm run build:function --prefix /opt/browserless &>/dev/null
+  npm prune production --prefix /opt/browserless &>/dev/null
+  systemctl restart browserless
+else
+  msg_error "No Browserless Installation Found!"
+fi
+systemctl restart changedetection
 msg_ok "Updated Successfully"
 exit
 }

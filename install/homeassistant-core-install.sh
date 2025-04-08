@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2021-2023 tteck
+# Copyright (c) 2021-2024 tteck
 # Author: tteck (tteckster)
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
@@ -13,83 +13,25 @@ setting_up_container
 network_check
 update_os
 
-msg_info "Installing Dependencies, (Patience)"
-$STD apt-get install -y \
-  git \
-  curl \
-  sudo \
-  mc \
-  bluez \
-  libffi-dev \
-  libssl-dev \
-  libjpeg-dev \
-  zlib1g-dev \
-  autoconf \
-  build-essential \
-  libopenjp2-7 \
-  libturbojpeg0-dev \
-  ffmpeg \
-  liblapack3 \
-  liblapack-dev \
-  dbus-broker \
-  libpcap-dev \
-  libmariadb-dev-compat \
-  libatlas-base-dev
+msg_info "Installing Dependencies (Patience)"
+$STD apt-get install -y git curl sudo mc bluez libffi-dev libssl-dev libjpeg-dev zlib1g-dev autoconf build-essential libopenjp2-7 libturbojpeg0-dev ffmpeg liblapack3 liblapack-dev dbus-broker libpcap-dev libavdevice-dev libavformat-dev libavcodec-dev libavutil-dev libavfilter-dev libmariadb-dev-compat libatlas-base-dev pip python3.12-dev
 msg_ok "Installed Dependencies"
 
-msg_info "Updating Python3"
-$STD apt-get install -y \
-  python3 \
-  python3-dev \
-  python3-pip \
-  python3-venv
+msg_info "Installing UV"
+$STD pip install uv
+msg_ok "Installed UV"
 
-msg_ok "Updated Python3"
-
-if [[ "$PCT_OSVERSION" == "11" ]]; then
-  msg_info "Installing pyenv"
-  $STD apt-get install -y \
-    make \
-    libreadline-dev \
-    libsqlite3-dev \
-    libncurses5-dev \
-    libncursesw5-dev \
-    xz-utils \
-    tk-dev \
-    llvm \
-    libbz2-dev \
-    libxml2-dev \
-    libxmlsec1-dev \
-    liblzma-dev
-  $STD git clone https://github.com/pyenv/pyenv.git ~/.pyenv
-  set +e
-  echo 'export PYENV_ROOT="$HOME/.pyenv"' >>~/.bashrc
-  echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >>~/.bashrc
-  echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n eval "$(pyenv init --path)"\nfi' >>~/.bashrc
-  msg_ok "Installed pyenv"
-  . ~/.bashrc
-
-  set -e
-  msg_info "Installing Python 3.11.3 (Patience)"
-  $STD pyenv install 3.11.3
-  pyenv global 3.11.3
-  msg_ok "Installed Python 3.11.3"
-fi
-
-msg_info "Installing Home Assistant-Core"
+msg_info "Setting up Home Assistant-Core environment"
 mkdir /srv/homeassistant
 cd /srv/homeassistant
-python3 -m venv .
+uv venv . &>/dev/null
 source bin/activate
-$STD pip install --upgrade pip
-$STD python3 -m pip install wheel
-$STD pip install homeassistant
-$STD pip install mysqlclient
-$STD pip install psycopg2-binary
+msg_ok "Created virtual environment with UV"
+
+msg_info "Installing Home Assistant-Core and packages"
+$STD uv pip install webrtcvad wheel homeassistant mysqlclient psycopg2-binary isal
 mkdir -p /root/.homeassistant
-echo "bash -c \"\$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/ct/${app}.sh)\"" >/usr/bin/update
-chmod +x /usr/bin/update
-msg_ok "Installed Home Assistant-Core"
+msg_ok "Installed Home Assistant-Core and required packages"
 
 msg_info "Creating Service"
 cat <<EOF >/etc/systemd/system/homeassistant.service
@@ -99,19 +41,20 @@ After=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=/root/.homeassistant
-ExecStart=/srv/homeassistant/bin/hass -c "/root/.homeassistant"
+Environment="PATH=/srv/homeassistant/bin:/usr/local/bin:/usr/bin:/usr/local/bin/uv"
+ExecStart=/srv/homeassistant/bin/python3 -m homeassistant --config /root/.homeassistant
 Restart=always
 RestartForceExitStatus=100
 [Install]
 WantedBy=multi-user.target
 EOF
-$STD systemctl enable --now homeassistant
+systemctl enable -q --now homeassistant
 msg_ok "Created Service"
 
 motd_ssh
 customize
 
 msg_info "Cleaning up"
-$STD apt-get autoremove
-$STD apt-get autoclean
+$STD apt-get -y autoremove
+$STD apt-get -y autoclean
 msg_ok "Cleaned"

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 source <(curl -s https://raw.githubusercontent.com/tteck/Proxmox/main/misc/build.func)
-# Copyright (c) 2021-2023 tteck
+# Copyright (c) 2021-2024 tteck
 # Author: tteck (tteckster)
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
@@ -19,7 +19,7 @@ EOF
 header_info
 echo -e "Loading..."
 APP="Zoraxy"
-var_disk="4"
+var_disk="6"
 var_cpu="2"
 var_ram="2048"
 var_os="debian"
@@ -39,6 +39,8 @@ function default_settings() {
   BRG="vmbr0"
   NET="dhcp"
   GATE=""
+  APT_CACHER=""
+  APT_CACHER_IP=""
   DISABLEIP6="no"
   MTU=""
   SD=""
@@ -52,9 +54,22 @@ function default_settings() {
 
 function update_script() {
 header_info
-if [[ ! -d /opt/zoraxy/src ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-msg_error "There is currently no update path available."
-exit
+if [[ ! -d /opt/zoraxy/ ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+RELEASE=$(curl -s https://api.github.com/repos/tobychui/zoraxy/releases/latest  | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
+  msg_info "Updating $APP to ${RELEASE}"
+  systemctl stop zoraxy
+  wget -q "https://github.com/tobychui/zoraxy/releases/download/${RELEASE}/zoraxy_linux_amd64"
+  rm /opt/zoraxy/zoraxy
+  mv zoraxy_linux_amd64 /opt/zoraxy/zoraxy
+  chmod +x /opt/zoraxy/zoraxy
+  systemctl start zoraxy
+  echo "${RELEASE}" >/opt/${APP}_version.txt
+  msg_ok "Updated $APP"
+else
+  msg_ok "No update required. ${APP} is already at ${RELEASE}"
+ fi
+ exit
 }
 
 start
